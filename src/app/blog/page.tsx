@@ -10,37 +10,38 @@ export default function AdminBlog() {
     title: '', excerpt: '', content: '', category: 'Design',
     tags: '', status: 'draft', metaTitle: '', metaDescription: '', metaKeywords: ''
   })
+const token = typeof window !== 'undefined' ? localStorage.getItem('token') : ''
+const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+const baseUrl = process.env.NEXT_PUBLIC_API_URL
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : ''
-  const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+const fetchPosts = async () => {
+  const res = await fetch(`${baseUrl}/api/blog/admin/all`, { headers })
+  const data = await res.json()
+  setPosts(data.data || [])
+}
 
-  const fetchPosts = async () => {
-    const res = await fetch('http://localhost:5000/api/blog/admin/all', { headers })
-    const data = await res.json()
-    setPosts(data.data || [])
+useEffect(() => { fetchPosts() }, [])
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  const body = { ...form, tags: form.tags.split(',').map((t: string) => t.trim()).filter(Boolean) }
+  if (editId) {
+    await fetch(`${baseUrl}/api/blog/${editId}`, { method: 'PUT', headers, body: JSON.stringify(body) })
+  } else {
+    await fetch(`${baseUrl}/api/blog`, { method: 'POST', headers, body: JSON.stringify(body) })
   }
+  setForm({ title: '', excerpt: '', content: '', category: 'Design', tags: '', status: 'draft', metaTitle: '', metaDescription: '', metaKeywords: '' })
+  setEditId(null)
+  setShowForm(false)
+  fetchPosts()
+}
 
-  useEffect(() => { fetchPosts() }, [])
+const handleDelete = async (id: string) => {
+  if (!confirm('Delete this post?')) return
+  await fetch(`${baseUrl}/api/blog/${id}`, { method: 'DELETE', headers })
+  fetchPosts()
+}
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const body = { ...form, tags: form.tags.split(',').map((t: string) => t.trim()).filter(Boolean) }
-    if (editId) {
-      await fetch(`http://localhost:5000/api/blog/${editId}`, { method: 'PUT', headers, body: JSON.stringify(body) })
-    } else {
-      await fetch('http://localhost:5000/api/blog', { method: 'POST', headers, body: JSON.stringify(body) })
-    }
-    setForm({ title: '', excerpt: '', content: '', category: 'Design', tags: '', status: 'draft', metaTitle: '', metaDescription: '', metaKeywords: '' })
-    setEditId(null)
-    setShowForm(false)
-    fetchPosts()
-  }
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('Delete this post?')) return
-    await fetch(`http://localhost:5000/api/blog/${id}`, { method: 'DELETE', headers })
-    fetchPosts()
-  }
 
   const handleEdit = (p: any) => {
     setForm({

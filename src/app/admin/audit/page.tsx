@@ -8,7 +8,8 @@ export default function AuditLogs() {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : ''
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/audit-logs', {
+    fetch('process.env.NEXT_PUBLIC_API_URL
+/api/audit-logs', {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(r => r.json())

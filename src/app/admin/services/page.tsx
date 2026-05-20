@@ -10,33 +10,45 @@ export default function AdminServices() {
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : ''
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+const fetchServices = async () => {
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL
+  const res = await fetch(`${baseUrl}/api/services`)
+  const data = await res.json()
+  setServices(data.data || [])
+}
 
-  const fetchServices = async () => {
-    const res = await fetch('http://localhost:5000/api/services')
-    const data = await res.json()
-    setServices(data.data || [])
+useEffect(() => { fetchServices() }, [])
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL
+
+  if (editId) {
+    await fetch(`${baseUrl}/api/services/${editId}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(form)
+    })
+  } else {
+    await fetch(`${baseUrl}/api/services`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(form)
+    })
   }
 
-  useEffect(() => { fetchServices() }, [])
+  setForm({ title: '', description: '', icon: '' })
+  setEditId(null)
+  setShowForm(false)
+  fetchServices()
+}
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (editId) {
-      await fetch(`http://localhost:5000/api/services/${editId}`, { method: 'PUT', headers, body: JSON.stringify(form) })
-    } else {
-      await fetch('http://localhost:5000/api/services', { method: 'POST', headers, body: JSON.stringify(form) })
-    }
-    setForm({ title: '', description: '', icon: '' })
-    setEditId(null)
-    setShowForm(false)
-    fetchServices()
-  }
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('Delete this service?')) return
-    await fetch(`http://localhost:5000/api/services/${id}`, { method: 'DELETE', headers })
-    fetchServices()
-  }
+const handleDelete = async (id: string) => {
+  if (!confirm('Delete this service?')) return
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL
+  await fetch(`${baseUrl}/api/services/${id}`, { method: 'DELETE', headers })
+  fetchServices()
+}
 
   const handleEdit = (s: any) => {
     setForm({ title: s.title, description: s.description, icon: s.icon })
