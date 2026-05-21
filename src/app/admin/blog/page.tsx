@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react'
 import Topbar from '@/components/dashboard/Topbar'
 
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
+
 export default function AdminBlog() {
   const [posts, setPosts] = useState([])
   const [showForm, setShowForm] = useState(false)
@@ -14,12 +16,12 @@ export default function AdminBlog() {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : ''
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL
-
   const fetchPosts = async () => {
-    const res = await fetch(`${baseUrl}/api/blog/admin/all`, { headers })
-    const data = await res.json()
-    setPosts(data.data || [])
+    try {
+      const res = await fetch(`${API}/api/blog/admin/all`, { headers })
+      const data = await res.json()
+      setPosts(data.data || [])
+    } catch {}
   }
 
   useEffect(() => { fetchPosts() }, [])
@@ -28,9 +30,9 @@ export default function AdminBlog() {
     e.preventDefault()
     const body = { ...form, tags: form.tags.split(',').map((t: string) => t.trim()).filter(Boolean) }
     if (editId) {
-      await fetch(`${baseUrl}/api/blog/${editId}`, { method: 'PUT', headers, body: JSON.stringify(body) })
+      await fetch(`${API}/api/blog/${editId}`, { method: 'PUT', headers, body: JSON.stringify(body) })
     } else {
-      await fetch(`${baseUrl}/api/blog`, { method: 'POST', headers, body: JSON.stringify(body) })
+      await fetch(`${API}/api/blog`, { method: 'POST', headers, body: JSON.stringify(body) })
     }
     setForm({ title: '', excerpt: '', content: '', category: 'Design', tags: '', status: 'draft', metaTitle: '', metaDescription: '', metaKeywords: '' })
     setEditId(null)
@@ -40,10 +42,9 @@ export default function AdminBlog() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this post?')) return
-    await fetch(`${baseUrl}/api/blog/${id}`, { method: 'DELETE', headers })
+    await fetch(`${API}/api/blog/${id}`, { method: 'DELETE', headers })
     fetchPosts()
   }
-}
 
   const handleEdit = (p: any) => {
     setForm({
@@ -57,14 +58,9 @@ export default function AdminBlog() {
   }
 
   const inputStyle = {
-    width: '100%',
-    background: 'rgba(255,255,255,0.05)',
-    border: '1px solid rgba(255,255,255,0.1)',
-    borderRadius: '8px',
-    padding: '10px 14px',
-    color: '#fff',
-    fontSize: '14px',
-    outline: 'none'
+    width: '100%', background: 'rgba(255,255,255,0.05)',
+    border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px',
+    padding: '10px 14px', color: '#fff', fontSize: '14px', outline: 'none'
   }
 
   return (
@@ -73,11 +69,7 @@ export default function AdminBlog() {
       <div style={{ padding: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
           <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '14px' }}>{posts.length} posts total</p>
-          <button onClick={() => {
-            setShowForm(!showForm)
-            setEditId(null)
-            setForm({ title: '', excerpt: '', content: '', category: 'Design', tags: '', status: 'draft', metaTitle: '', metaDescription: '', metaKeywords: '' })
-          }}
+          <button onClick={() => { setShowForm(!showForm); setEditId(null); setForm({ title: '', excerpt: '', content: '', category: 'Design', tags: '', status: 'draft', metaTitle: '', metaDescription: '', metaKeywords: '' }) }}
             style={{ padding: '10px 20px', background: '#C9A24A', color: '#0A0A0A', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
             + Add Post
           </button>
@@ -94,24 +86,19 @@ export default function AdminBlog() {
                 </div>
                 <div>
                   <label style={{ display: 'block', color: 'rgba(255,255,255,0.45)', fontSize: '12px', marginBottom: '6px' }}>Category</label>
-                  <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}
-                    style={{ ...inputStyle, background: '#1a1a1a' }}>
+                  <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} style={{ ...inputStyle, background: '#1a1a1a' }}>
                     {['Design', 'Branding', 'Development', 'Strategy'].map(c => <option key={c}>{c}</option>)}
                   </select>
                 </div>
               </div>
-
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', color: 'rgba(255,255,255,0.45)', fontSize: '12px', marginBottom: '6px' }}>Excerpt</label>
                 <input value={form.excerpt} onChange={e => setForm({ ...form, excerpt: e.target.value })} style={inputStyle} placeholder="Short description..." />
               </div>
-
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', color: 'rgba(255,255,255,0.45)', fontSize: '12px', marginBottom: '6px' }}>Content *</label>
-                <textarea value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} required rows={6}
-                  style={{ ...inputStyle, resize: 'vertical' }} />
+                <textarea value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} required rows={6} style={{ ...inputStyle, resize: 'vertical' }} />
               </div>
-
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                 <div>
                   <label style={{ display: 'block', color: 'rgba(255,255,255,0.45)', fontSize: '12px', marginBottom: '6px' }}>Tags (comma separated)</label>
@@ -119,14 +106,12 @@ export default function AdminBlog() {
                 </div>
                 <div>
                   <label style={{ display: 'block', color: 'rgba(255,255,255,0.45)', fontSize: '12px', marginBottom: '6px' }}>Status</label>
-                  <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}
-                    style={{ ...inputStyle, background: '#1a1a1a' }}>
+                  <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} style={{ ...inputStyle, background: '#1a1a1a' }}>
                     <option value="draft">Draft</option>
                     <option value="published">Published</option>
                   </select>
                 </div>
               </div>
-
               <div style={{ background: 'rgba(201,162,74,0.05)', border: '1px solid rgba(201,162,74,0.15)', borderRadius: '8px', padding: '16px', marginBottom: '20px' }}>
                 <p style={{ color: '#C9A24A', fontSize: '12px', fontWeight: 600, marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>SEO Settings</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -140,17 +125,15 @@ export default function AdminBlog() {
                   </div>
                   <div>
                     <label style={{ display: 'block', color: 'rgba(255,255,255,0.45)', fontSize: '12px', marginBottom: '6px' }}>Meta Keywords</label>
-                    <input value={form.metaKeywords} onChange={e => setForm({ ...form, metaKeywords: e.target.value })} style={inputStyle} placeholder="keyword1, keyword2, keyword3" />
+                    <input value={form.metaKeywords} onChange={e => setForm({ ...form, metaKeywords: e.target.value })} style={inputStyle} placeholder="keyword1, keyword2" />
                   </div>
                 </div>
               </div>
-
               <div style={{ display: 'flex', gap: '12px' }}>
                 <button type="submit" style={{ padding: '10px 24px', background: '#C9A24A', color: '#0A0A0A', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
                   {editId ? 'Update' : 'Publish'}
                 </button>
-                <button type="button" onClick={() => setShowForm(false)}
-                  style={{ padding: '10px 24px', background: 'transparent', color: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '13px', cursor: 'pointer' }}>
+                <button type="button" onClick={() => setShowForm(false)} style={{ padding: '10px 24px', background: 'transparent', color: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '13px', cursor: 'pointer' }}>
                   Cancel
                 </button>
               </div>
@@ -173,7 +156,7 @@ export default function AdminBlog() {
               ) : (
                 posts.map((p: any) => (
                   <tr key={p._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    <td style={{ padding: '14px 16px', color: '#fff', fontSize: '14px', fontWeight: 500, maxWidth: '200px' }}>{p.title}</td>
+                    <td style={{ padding: '14px 16px', color: '#fff', fontSize: '14px', fontWeight: 500 }}>{p.title}</td>
                     <td style={{ padding: '14px 16px', color: 'rgba(255,255,255,0.55)', fontSize: '13px' }}>{p.category}</td>
                     <td style={{ padding: '14px 16px' }}>
                       <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>

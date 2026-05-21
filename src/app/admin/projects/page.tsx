@@ -18,8 +18,7 @@ export default function AdminProjects() {
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
 
   const fetchProjects = async () => {
-    const res = await fetch('process.env.NEXT_PUBLIC_API_URL
-/api/projects')
+   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/projects`)
     const data = await res.json()
     setProjects(data.data || [])
   }
