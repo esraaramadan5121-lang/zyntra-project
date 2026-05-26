@@ -10,16 +10,17 @@ export default function ContactClient() {
     e.preventDefault()
     if (!form.name || !form.email || !form.message) return
     setLoading(true)
-    try {const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/messages`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(form),
-})
+    try {
+      const res = await fetch('https://zyntra.ltd/api/messages', { // 🔹 استخدم الدومين الجديد مباشرة
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
 
       const data = await res.json()
       if (data.success) setSent(true)
-    } catch {
-      console.error('Error sending message')
+    } catch (err) {
+      console.error('Error sending message:', err)
     }
     setLoading(false)
   }
